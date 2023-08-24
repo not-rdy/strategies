@@ -79,6 +79,7 @@ class GetProfit:
     def __init__(self):
         self.open = None
         self.type = None
+        self.previous_close_price = None
 
     def __call__(self, row: pd.Series) -> float:
         if not pd.isna(row['signal']) and row['signal']['action'] == 'open':
@@ -164,13 +165,15 @@ class TradingSystem:
             q_std_rolling_width: int,
             sigma_coeff_for_SL: float,
             q: float,
-            q_window_width: int) -> None:
+            q_window_width: int,
+            risk_value: float) -> None:
 
         self.ma_window_width = ma_window_width
         self.q_std_rolling_width = q_std_rolling_width
         self.sigma_coeff_for_SL = sigma_coeff_for_SL
         self.q = q
         self.q_window_width = q_window_width
+        self.risk_value = risk_value
         self.signal = Signal()
         self.stoploss = StopLoss()
         self.is_reached_sl = IsReachedSL()
