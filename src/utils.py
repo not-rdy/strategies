@@ -82,79 +82,85 @@ class GetProfit:
         self.previous_close_price = None
 
     def __call__(self, row: pd.Series) -> float:
+
+        profit = None
+
         if not pd.isna(row['signal']) and row['signal']['action'] == 'open':
             self.open = True
             self.type = row['signal']['type']
 
-        # сделка открыта, на повышение, момент открытия сделки, sl не достигнут
+        # *** сделка открыта, на повышение, момент открытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 1 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'open' and not row['is_reached_sl']:
-            return row['Close'] - row['signal']['price']
+            profit = row['Close'] - row['signal']['price']
         # сделка открыта, на повышение, момент окрытия сделки, sl достигнут
         if self.open and self.type == 1 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'open' and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['sl'] - row['signal']['price']
-        # сделка открыта, на повышение, после открытия сделки, sl не достигнут
+            profit = row['sl'] - row['signal']['price']
+        # !!! сделка открыта, на повышение, после открытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 1 and\
                 pd.isna(row['signal']) and not row['is_reached_sl']:
-            return row['Close'] - row['Open']
-        # сделка открыта, на повышение, после открытия сделки, sl достигнут
+            profit = row['Close'] - self.previous_close_price
+        # !!! сделка открыта, на повышение, после открытия сделки, sl достигнут
         if self.open and self.type == 1 and\
                 pd.isna(row['signal']) and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['sl'] - row['Open']
-        # сделка открыта, на повышение, момент закрытия сделки, sl не достигнут
+            profit = row['sl'] - self.previous_close_price
+        # !!! сделка открыта, на повышение, момент закрытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 1 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'close' and not row['is_reached_sl']:  # noqa: E501
             self.open = False
             self.type = None
-            return row['signal']['price'] - row['Open']
-        # сделка открыта, на повышение, момент закрытия сделки, sl достигнут
+            profit = row['signal']['price'] - self.previous_close_price
+        # !!! сделка открыта, на повышение, момент закрытия сделки, sl достигнут  # noqa: E501
         if self.open and self.type == 1 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'close' and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['sl'] - row['Open']
-
-        # сделка открыта, на понижение, момент открытия сделки, sl не достигнут
+            profit = row['sl'] - self.previous_close_price
+        # *** сделка открыта, на понижение, момент открытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 0 and not pd.isna(row['signal'])\
                 and row['signal']['action'] == 'open' and not row['is_reached_sl']:  # noqa: E501
-            return row['signal']['price'] - row['Close']
+            profit = row['signal']['price'] - row['Close']
         # сделка открыта, на понижение, момент открытия сделки, sl достигнут
         if self.open and self.type == 0 and not pd.isna(row['signal'])\
                 and row['signal']['action'] == 'open' and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['signal']['price'] - row['sl']
-        # сделка открыта, на понижение, после открытия сделки, sl не достигнут
+            profit = row['signal']['price'] - row['sl']
+        # !!! сделка открыта, на понижение, после открытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 0 and\
                 pd.isna(row['signal']) and not row['is_reached_sl']:
-            return row['Open'] - row['Close']
-        # сделка открыта, на понижение, после открытия сделки, sl достигнут
+            profit = self.previous_close_price - row['Close']
+        # !!! сделка открыта, на понижение, после открытия сделки, sl достигнут
         if self.open and self.type == 0 and\
                 pd.isna(row['signal']) and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['Open'] - row['sl']
-        # сделка открыта, на понижение, момент закрытия сделки, sl не достигнут
+            profit = self.previous_close_price - row['sl']
+        # !!! сделка открыта, на понижение, момент закрытия сделки, sl не достигнут  # noqa: E501
         if self.open and self.type == 0 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'close' and not row['is_reached_sl']:  # noqa: E501
             self.open = False
             self.type = None
-            return row['Open'] - row['signal']['price']
-        # сделка открыта, на понижение, момент закрытия сделки, sl достигнут
+            profit = self.previous_close_price - row['signal']['price']
+        # !!! сделка открыта, на понижение, момент закрытия сделки, sl достигнут  # noqa: E501
         if self.open and self.type == 0 and not pd.isna(row['signal']) and\
                 row['signal']['action'] == 'close' and row['is_reached_sl']:
             self.open = False
             self.type = None
-            return row['Open'] - row['sl']
+            profit = self.previous_close_price - row['sl']
 
         if not pd.isna(row['signal']) and row['signal']['action'] == 'close':
             self.open = False
             self.type = None
+
+        self.previous_close_price = row['Close']
+
+        return profit
 
 
 class TradingSystem:
@@ -165,15 +171,13 @@ class TradingSystem:
             q_std_rolling_width: int,
             sigma_coeff_for_SL: float,
             q: float,
-            q_window_width: int,
-            risk_value: float) -> None:
+            q_window_width: int) -> None:
 
         self.ma_window_width = ma_window_width
         self.q_std_rolling_width = q_std_rolling_width
         self.sigma_coeff_for_SL = sigma_coeff_for_SL
         self.q = q
         self.q_window_width = q_window_width
-        self.risk_value = risk_value
         self.signal = Signal()
         self.stoploss = StopLoss()
         self.is_reached_sl = IsReachedSL()
