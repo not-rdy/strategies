@@ -1,6 +1,7 @@
+import os
 from tinkoff.invest import Client
 
-TOKEN = 't.qAA92zgThHLAO6mNv_m9iydwxW1Na-gARgXdbsTnGfoOQmpXRT0YDrwIP4OOR8WCVPgPPJJ6Wh2e2goa_lQb7g'  # noqa: E501
+TOKEN = os.getenv('TOKEN')
 
 
 def main():
