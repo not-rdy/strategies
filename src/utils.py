@@ -184,9 +184,12 @@ class TradingSystem:
         self.get_profit = GetProfit()
 
     def __get_prepared_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
+        colrename = {
+            'o': 'Open', 'h': 'High', 'l': 'Low', 'c': 'Close',
+            'vol': 'Volume', 'ts': 'Date'
+        }
+        df = df.rename(columns=colrename)
         df = df.sort_values(by='Date')
-        df['Date'] = pd.to_datetime(df['Date'] * 1e6)
         df = df.set_index('Date')
         return df
 
