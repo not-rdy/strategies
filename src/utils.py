@@ -44,10 +44,10 @@ class StopLoss:
         if pd.isna(last['signal']):
             return self.stop_loss
         if last['signal']['action'] == 'open' and last['signal']['type'] == 1:
-            self.stop_loss = last['low_q'] - last['low_q_std'] * sigma_coeff
+            self.stop_loss = last['low_q'] - last['signal']['price'] * sigma_coeff
             return self.stop_loss
         elif last['signal']['action'] == 'open' and last['signal']['type'] == 0:  # noqa: E501
-            self.stop_loss = last['high_q'] + last['high_q_std'] * sigma_coeff
+            self.stop_loss = last['high_q'] + last['signal']['price'] * sigma_coeff
             return self.stop_loss
         elif last['signal']['action'] == 'close' and\
                 (last['signal']['type'] == 0 or last['signal']['type'] == 1):
@@ -231,4 +231,4 @@ class TradingSystem:
         self.last['profit'] = self.get_profit(
             self.last[['Open', 'Close', 'signal', 'sl', 'is_reached_sl']]
         )
-        return self.last['profit']
+        return self.last
