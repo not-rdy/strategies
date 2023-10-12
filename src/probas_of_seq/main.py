@@ -61,7 +61,8 @@ with Client(os.getenv('TOKEN')) as client:
     for marketdata in client.market_data_stream.market_data_stream(
         request_iterator()
     ):
-        sequence = seq.make(marketdata)
-        signal = sig.make(sequence)
-        print(f'\nSignal: {signal}')
-        acm.manage_orders(signal=signal, quantity=quantity)
+        if marketdata.ping is None:
+            sequence = seq.make(marketdata)
+            signal = sig.make(sequence)
+            print(f'\nSignal: {signal}')
+            acm.manage_orders(signal=signal, quantity=quantity)
