@@ -16,8 +16,9 @@ from tinkoff.invest import CandleInterval
 
 figi = 'BBG004730N88'
 interval = CandleInterval.CANDLE_INTERVAL_5_MIN
-subscription_interval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
+subscription_interval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES
 seq_window = 5
+quantity = 2
 
 seq = SequenceMaker(
     figi=figi,
@@ -63,4 +64,4 @@ with Client(os.getenv('TOKEN')) as client:
         sequence = seq.make(marketdata)
         signal = sig.make(sequence)
         print(f'\nSignal: {signal}')
-        acm.manage_orders(signal=signal, quantity=1)
+        acm.manage_orders(signal=signal, quantity=quantity)

@@ -16,11 +16,11 @@ class SignalMaker:
     def __prepare_target(candles: pd.DataFrame) -> pd.Series:
         candles['ts'] = candles['ts'].astype('datetime64[ns]')
         candles = candles.sort_values(by='ts')
-        candles['target'] = candles['c'].diff().shift(-1)
-        candles['target'] = candles['target'].fillna(0)\
-            .map(lambda x: 1 if x > 0 else 0 if x == 0 else -1)
+        candles['target'] = candles['c'].diff()
         candles = candles.dropna()
-        target = candles.set_index('ts')['target'].astype(str)
+        candles['target'] = candles['target']\
+            .map(lambda x: '1' if x > 0 else '0' if x == 0 else '-1')
+        target = candles.set_index('ts')['target']
         return target
 
     @staticmethod
